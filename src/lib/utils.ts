@@ -1,0 +1,128 @@
+import crypto from 'crypto';
+import {ApiResponse, SessionExpiredError} from '@/lib/types';
+import axios, { AxiosResponse } from 'axios';
+import {NextResponse} from "next/server";
+
+const HEADERS = {
+  'User-Agent': `Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36 Chrome/91.0.4472.164`,
+};
+
+function mergeCookies(oldCookies: string[], setCookieHeaders: string[]): string[] {
+  const cookieMap: Record<string, string> = {};
+
+  for (const cookie of oldCookies) {
+    const [key, value] = cookie.split('=');
+    cookieMap[key.trim()] = value.trim();
+  }
+
+  for (const setCookie of setCookieHeaders) {
+    const [cookie] = setCookie.split(';');
+    const [key, value] = cookie.split('=');
+    cookieMap[key.trim()] = value.trim();
+  }
+
+  return Object.entries(cookieMap).map(([k, v]) => `${k}=${v}`);
+}
+
+export async function get(url: string, cookies: string[]): Promise<ApiResponse> {
+  const cookieHeader = cookies.join('; ');
+
+  const res: AxiosResponse = await axios.get(url, {
+    headers: {
+      ...HEADERS,
+      Cookie: cookieHeader,
+    },
+  });
+
+  const setCookieHeader = res.headers['set-cookie'] || [];
+  const updatedCookies = mergeCookies(cookies, setCookieHeader);
+
+  return {
+    data: res.data,
+    cookies: updatedCookies,
+  };
+}
+
+export async function post(url: string, data: any, cookies: string[]): Promise<ApiResponse> {
+  const cookieHeader = cookies.join('; ');
+
+  const res: AxiosResponse = await axios.post(url, data, {
+    headers: {
+      ...HEADERS,
+      Cookie: cookieHeader,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  const setCookieHeader = res.headers['set-cookie'] || [];
+  const updatedCookies = mergeCookies(cookies, setCookieHeader);
+
+  return {
+    data: res.data,
+    cookies: updatedCookies,
+  };
+}
+
+export async function postForm(url: string, data: any, cookies: string[]): Promise<ApiResponse> {
+  const cookieHeader = cookies.join('; ');
+
+  const res: AxiosResponse = await axios.post(
+    url,
+    new URLSearchParams(data as Record<string, string>).toString(),
+    {
+      headers: {
+        ...HEADERS,
+        Cookie: cookieHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    },
+  );
+
+  const setCookieHeader = res.headers['set-cookie'] || [];
+  const updatedCookies = mergeCookies(cookies, setCookieHeader);
+
+  return {
+    data: res.data,
+    cookies: updatedCookies,
+  };
+}
+
+export function randomString(length: number): string {
+  const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
+export function encodePassword(password: string, salt: string): string {
+  const iv = randomString(16);
+  const key = Buffer.from(salt, 'utf-8');
+  const cipher = crypto.createCipheriv('aes-128-cbc', key, Buffer.from(iv, 'utf-8'));
+  const paddedPassword = Buffer.concat([Buffer.from(randomString(64) + password, 'utf-8')]);
+  let encrypted = cipher.update(paddedPassword);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return Buffer.from(encrypted).toString('base64');
+}
+
+export function encodeBase64Cookies(cookies: string[]): string {
+  const str = cookies.join('; ');
+  return Buffer.from(str, 'utf-8').toString('base64');
+}
+
+export function decodeBase64Cookies(encoded: string): string[] {
+  const str = Buffer.from(encoded, 'base64').toString('utf-8');
+  return str
+    .split('; ')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function routeErrorHandler(err: any): NextResponse {
+  if (err instanceof SessionExpiredError) {
+    return NextResponse.json({ isSuccess: false, message: 'Session expired' });
+  }
+  console.error(err);
+  return NextResponse.json({ isSuccess: false, message: 'Internal server error' });
+}
