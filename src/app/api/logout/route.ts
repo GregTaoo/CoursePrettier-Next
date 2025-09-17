@@ -10,6 +10,6 @@ export async function POST(req: NextRequest) {
     res.cookies.set('LOGIN_SESSION', '', { maxAge: 0 });
     return res;
   } catch (err: any) {
-    routeErrorHandler(err);
+    return routeErrorHandler(err);
   }
 }

@@ -1,95 +1,97 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect } from "react";
+import { login } from '@/lib/client';
+import { Input, Button, Alert, Space, Typography, Card, Layout } from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
+
+const { Title } = Typography;
+
+const LoginPage = () => {
+  const [userId, setuserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter(); // 替换 useNavigate
+
+  // 检查登录状态和学生 ID 的 cookie
+  useEffect(() => {
+    const cookies = document.cookie;
+    const loginSession = cookies.split(";").some(c => c.trim().startsWith("LOGIN_SESSION="));
+    const studentId = cookies.split(";").some(c => c.trim().startsWith("STUDENT_ID="));
+
+    if (loginSession && studentId) {
+      // 已登录，跳转到课程页面
+      router.push("/courses");
+    }
+  }, []);
+
+  const handleLogin = async () => {
+    setLoading(true);
+
+    try {
+      const loginData = await login(userId, password);
+      if (loginData && loginData?.isSuccess) {
+        setError("");
+        localStorage.setItem("user_data", JSON.stringify(loginData));
+        router.push("/courses"); // Next.js 路由跳转
+      } else {
+        setError("登录失败，请检查学号和密码是否正确");
+      }
+    } catch (err) {
+      setError("登录失败，请检查学号和密码是否正确");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <Layout style={{ minHeight: "100vh" }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Card
+          style={{ width: 350, padding: "20px" }}
+          title={<Title level={3} style={{ textAlign: "center" }}>登录</Title>}
+          bordered={false}
+        >
+          {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 16 }} />}
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="学号"
+              value={userId}
+              onChange={(e) => setuserId(e.target.value)}
+              size="large"
             />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <Input
+              prefix={<LockOutlined />}
+              type="password"
+              placeholder="密码"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              size="large"
+            />
+            <Button
+              type="primary"
+              onClick={handleLogin}
+              size="large"
+              style={{ width: "100%" }}
+              loading={loading}
+              disabled={loading}
+              autoInsertSpace={false}
+            >
+              提交
+            </Button>
+            <Typography.Text style={{ color: "lightgray", fontSize: 12 }}>
+              请使用上海科技大学统一身份认证登录
+            </Typography.Text>
+          </Space>
+        </Card>
+      </div>
+    </Layout>
   );
-}
+};
+
+export default LoginPage;

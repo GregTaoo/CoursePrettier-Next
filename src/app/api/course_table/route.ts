@@ -20,6 +20,6 @@ export async function POST(req: NextRequest) {
     );
     return NextResponse.json({ isSuccess: true, message: table });
   } catch (err: any) {
-    routeErrorHandler(err);
+    return routeErrorHandler(err);
   }
 }

@@ -26,6 +26,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ isSuccess: false, message: 'Login failed' });
   } catch (err: any) {
-    routeErrorHandler(err);
+    return routeErrorHandler(err);
   }
 }

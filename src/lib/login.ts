@@ -1,4 +1,4 @@
-import { get, postForm, encodePassword, decodeBase64Cookies } from './utils';
+import { get, post, encodePassword, decodeBase64Cookies, postForm } from './utils';
 import * as cheerio from 'cheerio';
 import { CredentialState, SessionExpiredError } from '@/lib/types';
 import { NextRequest } from 'next/server';
@@ -44,11 +44,11 @@ export async function getLoginToken(
 
   const token = {
     captcha: '',
-    lt: $('input[name="lt"]').val() as string,
+    lt: $('[name="lt"]').val() as string,
     cllt: 'userNameLogin',
-    dllt: $('input[name="dllt"]').val() as string,
-    execution: $('input[name="execution"]').val() as string,
-    eventId: $('input[name="_eventId"]').val() as string,
+    dllt: $('[name="dllt"]').val() as string,
+    execution: $('[name="execution"]').val() as string,
+    eventId: $('[name="_eventId"]').val() as string,
   };
 
   return { salt, token, cookies };
@@ -72,6 +72,7 @@ export async function login(state: CredentialState, password: string): Promise<C
     _eventId: token?.eventId,
   };
 
+  console.log(encodedPassword)
   const { cookies: newCookies } = await postForm(
     'https://ids.shanghaitech.edu.cn/authserver/login',
     data,
@@ -79,7 +80,7 @@ export async function login(state: CredentialState, password: string): Promise<C
   );
 
   // 判断是否登录成功（CASTGC cookie 存在）
-  const hasCastgc = newCookies.some((c) => c.startsWith('CASTGC='));
+  const hasCastgc = newCookies.some((c: string) => c.startsWith('CASTGC'));
 
   return {
     ...state,

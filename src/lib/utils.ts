@@ -87,25 +87,6 @@ export async function postForm(url: string, data: any, cookies: string[]): Promi
   };
 }
 
-export function randomString(length: number): string {
-  const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return result;
-}
-
-export function encodePassword(password: string, salt: string): string {
-  const iv = randomString(16);
-  const key = Buffer.from(salt, 'utf-8');
-  const cipher = crypto.createCipheriv('aes-128-cbc', key, Buffer.from(iv, 'utf-8'));
-  const paddedPassword = Buffer.concat([Buffer.from(randomString(64) + password, 'utf-8')]);
-  let encrypted = cipher.update(paddedPassword);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return Buffer.from(encrypted).toString('base64');
-}
-
 export function encodeBase64Cookies(cookies: string[]): string {
   const str = cookies.join('; ');
   return Buffer.from(str, 'utf-8').toString('base64');
@@ -125,4 +106,40 @@ export function routeErrorHandler(err: any): NextResponse {
   }
   console.error(err);
   return NextResponse.json({ isSuccess: false, message: 'Internal server error' });
+}
+import CryptoJS from "crypto-js";
+const aesChars = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+const aesCharsLen = aesChars.length;
+
+export function randomString(len: number): string {
+  let ret = "";
+  for (let i = 0; i < len; i++) {
+    ret += aesChars.charAt(Math.floor(Math.random() * aesCharsLen));
+  }
+  return ret;
+}
+
+function getAesString(data: string, keyStr: string, ivStr: string): string {
+  const key = CryptoJS.enc.Utf8.parse(keyStr.trim());
+  const iv = CryptoJS.enc.Utf8.parse(ivStr);
+  return CryptoJS.AES.encrypt(data, key, {
+    iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString();
+}
+
+export function encryptAES(data: string, key?: string): string {
+  if (!key) return data;
+  const iv = randomString(16);
+  return getAesString(randomString(64) + data, key, iv);
+}
+
+export function encodePassword(pwd: string, key?: string): string {
+  try {
+    return encryptAES(pwd, key);
+  } catch (e) {
+    console.log(e)
+    return pwd;
+  }
 }
