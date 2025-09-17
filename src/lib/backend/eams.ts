@@ -151,7 +151,7 @@ export async function getTermBegin(
   semester: string,
 ): Promise<string> {
   const res: ApiResponse = await get(
-    `https://eams.shanghaitech.edu.cn/eams/getSchoolCalendar.do?termJump=prev&schoolYearTerm=${year}-${parseInt(semester) + 1}`,
+    `https://egate.shanghaitech.edu.cn/publicapp/sys/mykbxt/api/getSchoolCalendar.do?termJump=prev&schoolYearTerm=${year}-${parseInt(semester) + 1}`,
     cred.cookies,
   );
 

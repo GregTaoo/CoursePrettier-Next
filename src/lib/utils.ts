@@ -42,11 +42,7 @@ export async function get(
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
 
-  if (res.status === 302) {
-    if (redirectTimes <= 0) {
-      throw new Error(`Too many redirects: ${url}`);
-    }
-
+  if (res.status === 302 && redirectTimes > 0) {
     const location = res.headers.location;
     if (!location) {
       throw new Error(`302 without Location header: ${url}`);
@@ -57,43 +53,6 @@ export async function get(
   }
 
   console.log(`[${res.status} GET] ${url}`);
-  return {
-    data: res.data,
-    cookies: updatedCookies,
-  };
-}
-
-export async function post(url: string, data: any, cookies: string[], redirectTimes: number = 4): Promise<ApiResponse> {
-  const cookieHeader = cookies.join('; ');
-
-  const res: AxiosResponse = await axios.post(url, data, {
-    maxRedirects: 0,
-    validateStatus: (status) => status < 400 || status === 302,
-    headers: {
-      ...HEADERS,
-      Cookie: cookieHeader,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  const setCookieHeader = res.headers['set-cookie'] || [];
-  const updatedCookies = mergeCookies(cookies, setCookieHeader);
-
-  if (res.status === 302) {
-    if (redirectTimes <= 0) {
-      throw new Error(`Too many redirects: ${url}`);
-    }
-
-    const location = res.headers.location;
-    if (!location) {
-      throw new Error(`302 without Location header: ${url}`);
-    }
-
-    console.log(`[302 REDIRECT POST] ${url} -> ${location}`);
-    return await post(location, data, updatedCookies, redirectTimes - 1);
-  }
-
-  console.log(`[${res.status} POST] ${url}: ${res.data}`);
   return {
     data: res.data,
     cookies: updatedCookies,
@@ -120,11 +79,7 @@ export async function postForm(url: string, data: any, cookies: string[], redire
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
 
-  if (res.status === 302) {
-    if (redirectTimes <= 0) {
-      throw new Error(`Too many redirects: ${url}`);
-    }
-
+  if (res.status === 302 && redirectTimes > 0) {
     const location = res.headers.location;
     if (!location) {
       throw new Error(`302 without Location header: ${url}`);

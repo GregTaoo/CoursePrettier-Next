@@ -1,4 +1,4 @@
-import { get, encodePassword, decodeBase64Cookies, postForm } from './utils';
+import { get, encodePassword, decodeBase64Cookies, postForm } from '../utils';
 import * as cheerio from 'cheerio';
 import { CredentialState, SessionExpiredError } from '@/lib/types';
 import { NextRequest } from 'next/server';
@@ -93,9 +93,11 @@ export async function login(state: CredentialState, password: string): Promise<C
  * 注销
  */
 export async function logout(state: CredentialState): Promise<CredentialState> {
-  if (state.isLogin) {
-    await get('https://egate.shanghaitech.edu.cn/logout', state.cookies);
-  }
+  // try {
+    if (state.isLogin) {
+      await get('https://ids.shanghaitech.edu.cn/personalInfo/logout', state.cookies, 0);
+    }
+  // } catch (e) {}
   return {
     ...state,
     cookies: [],

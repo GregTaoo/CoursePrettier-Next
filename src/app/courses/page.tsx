@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import ICSGenerator from "@/components/ICSGenerator";
-import { getSemesters, getCourseTable, logout } from "@/lib/client";
+import { getSemesters, getCourseTable, logout } from "@/lib/frontend/client";
 import {
   Table,
   Select,

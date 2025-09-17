@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { routeErrorHandler } from '@/lib/utils';
-import { createCredential } from '@/lib/login';
-import { getSemesters } from '@/lib/eams';
+import { createCredential } from '@/lib/backend/login';
+import { getSemesters } from '@/lib/backend/eams';
 
 export async function POST(req: NextRequest) {
   try {

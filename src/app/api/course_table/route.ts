@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { routeErrorHandler } from '@/lib/utils';
-import { createCredential } from '@/lib/login';
-import { getCourseTable } from '@/lib/eams';
+import { createCredential } from '@/lib/backend/login';
+import { getCourseTable } from '@/lib/backend/eams';
 
 export interface CourseTableParams {
   semester_id: string;

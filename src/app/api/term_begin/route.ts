@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { routeErrorHandler } from '@/lib/utils';
-import { createCredential } from '@/lib/login';
-import { getTermBegin } from '@/lib/eams';
+import { createCredential } from '@/lib/backend/login';
+import { getTermBegin } from '@/lib/backend/eams';
 
 export interface StartDateParams {
   year: string;

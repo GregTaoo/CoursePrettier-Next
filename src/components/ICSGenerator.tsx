@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Modal, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import { getTermBegin } from '@/lib/client';
+import { getTermBegin } from '@/lib/frontend/client';
 
 interface ICSGeneratorProps {
   externalOpen: boolean;

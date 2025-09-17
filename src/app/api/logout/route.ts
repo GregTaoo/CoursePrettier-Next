@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { routeErrorHandler } from '@/lib/utils';
-import { createCredential, logout } from '@/lib/login';
+import { createCredential, logout } from '@/lib/backend/login';
 
 export async function POST(req: NextRequest) {
   try {

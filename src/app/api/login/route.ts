@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { emptyCredential, login } from '@/lib/login';
+import { emptyCredential, login } from '@/lib/backend/login';
 import { encodeBase64Cookies, routeErrorHandler } from '@/lib/utils';
 
 export async function POST(req: NextRequest) {
