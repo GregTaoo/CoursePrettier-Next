@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { get, post } from '@/lib/utils';
+import { get, postForm } from '@/lib/utils';
 import {
   ApiResponse,
   Course,
@@ -38,7 +38,7 @@ export async function getSemesters(cred: CredentialState): Promise<{
   const tableId = $('#courseTable').attr('id') || '';
 
   // 第二次 POST 获取学期列表
-  const res2: ApiResponse = await post(
+  const res2: ApiResponse = await postForm(
     'https://eams.shanghaitech.edu.cn/eams/dataQuery.action',
     {
       tagId: `semesterBar${mysteryId}Semester`,
@@ -69,7 +69,6 @@ export async function getCourseTable(
   tableId?: string,
   startWeek?: number,
 ): Promise<CourseTable> {
-  // 如果没有 tableId，需要先 GET 页面解析
   if (!tableId) {
     const res1: ApiResponse = await get(
       'https://eams.shanghaitech.edu.cn/eams/courseTableForStd.action',
@@ -80,18 +79,30 @@ export async function getCourseTable(
     if (data1.includes('统一身份认证')) throw new SessionExpiredError();
 
     const $ = cheerio.load(data1);
-    tableId = $('#courseTable').attr('id') || '';
+    const scriptTags = $('script');
+
+    for (let i = 0; i < scriptTags.length; i++) {
+      const text = $(scriptTags[i]).text();
+      const match = text.match(/bg\.form\.addInput\(form,"ids","(\d+)"\)/);
+      if (match) {
+        tableId = match[1];
+        break;
+      }
+    }
   }
 
-  const res2: ApiResponse = await post(
+  if (!tableId)
+    throw new Error('tableId not found');
+
+  const res2: ApiResponse = await postForm(
     `https://eams.shanghaitech.edu.cn/eams/courseTableForStd!courseTable.action?ignoreHead=1&setting.kind=std&startWeek=${startWeek ?? ''}&semester.id=${semesterId}&ids=${tableId}&tutorRedirectstudentId=${tableId}`,
     {},
     cred.cookies,
   );
-
   const data2: string = res2.data;
 
-  if (data2.includes('统一身份认证')) throw new SessionExpiredError();
+  if (data2.includes('统一身份认证'))
+    throw new SessionExpiredError();
 
   // 解析课时段
   const [periodString, ...courseStrings] = data2.split('var teachers');

@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import {ApiResponse, SessionExpiredError} from '@/lib/types';
 import axios, { AxiosResponse } from 'axios';
 import {NextResponse} from "next/server";
@@ -24,10 +23,16 @@ function mergeCookies(oldCookies: string[], setCookieHeaders: string[]): string[
   return Object.entries(cookieMap).map(([k, v]) => `${k}=${v}`);
 }
 
-export async function get(url: string, cookies: string[]): Promise<ApiResponse> {
+export async function get(
+  url: string,
+  cookies: string[],
+  redirectTimes: number = 4
+): Promise<ApiResponse> {
   const cookieHeader = cookies.join('; ');
 
   const res: AxiosResponse = await axios.get(url, {
+    maxRedirects: 0,
+    validateStatus: (status) => status < 400 || status === 302,
     headers: {
       ...HEADERS,
       Cookie: cookieHeader,
@@ -37,16 +42,33 @@ export async function get(url: string, cookies: string[]): Promise<ApiResponse> 
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
 
+  if (res.status === 302) {
+    if (redirectTimes <= 0) {
+      throw new Error(`Too many redirects: ${url}`);
+    }
+
+    const location = res.headers.location;
+    if (!location) {
+      throw new Error(`302 without Location header: ${url}`);
+    }
+
+    console.log(`[302 REDIRECT] ${url} -> ${location}`);
+    return await get(location, updatedCookies, redirectTimes - 1);
+  }
+
+  console.log(`[${res.status} GET] ${url}`);
   return {
     data: res.data,
     cookies: updatedCookies,
   };
 }
 
-export async function post(url: string, data: any, cookies: string[]): Promise<ApiResponse> {
+export async function post(url: string, data: any, cookies: string[], redirectTimes: number = 4): Promise<ApiResponse> {
   const cookieHeader = cookies.join('; ');
 
   const res: AxiosResponse = await axios.post(url, data, {
+    maxRedirects: 0,
+    validateStatus: (status) => status < 400 || status === 302,
     headers: {
       ...HEADERS,
       Cookie: cookieHeader,
@@ -57,19 +79,36 @@ export async function post(url: string, data: any, cookies: string[]): Promise<A
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
 
+  if (res.status === 302) {
+    if (redirectTimes <= 0) {
+      throw new Error(`Too many redirects: ${url}`);
+    }
+
+    const location = res.headers.location;
+    if (!location) {
+      throw new Error(`302 without Location header: ${url}`);
+    }
+
+    console.log(`[302 REDIRECT POST] ${url} -> ${location}`);
+    return await post(location, data, updatedCookies, redirectTimes - 1);
+  }
+
+  console.log(`[${res.status} POST] ${url}: ${res.data}`);
   return {
     data: res.data,
     cookies: updatedCookies,
   };
 }
 
-export async function postForm(url: string, data: any, cookies: string[]): Promise<ApiResponse> {
+export async function postForm(url: string, data: any, cookies: string[], redirectTimes: number = 4): Promise<ApiResponse> {
   const cookieHeader = cookies.join('; ');
 
   const res: AxiosResponse = await axios.post(
     url,
     new URLSearchParams(data as Record<string, string>).toString(),
     {
+      maxRedirects: 0,
+      validateStatus: (status) => status < 400 || status === 302,
       headers: {
         ...HEADERS,
         Cookie: cookieHeader,
@@ -81,6 +120,21 @@ export async function postForm(url: string, data: any, cookies: string[]): Promi
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
 
+  if (res.status === 302) {
+    if (redirectTimes <= 0) {
+      throw new Error(`Too many redirects: ${url}`);
+    }
+
+    const location = res.headers.location;
+    if (!location) {
+      throw new Error(`302 without Location header: ${url}`);
+    }
+
+    console.log(`[302 REDIRECT POST FORM] ${url} -> ${location}`);
+    return await postForm(location, data, updatedCookies, redirectTimes - 1);
+  }
+
+  console.log(`[${res.status} POST FORM] ${url}: ${res.data}`);
   return {
     data: res.data,
     cookies: updatedCookies,
@@ -108,38 +162,40 @@ export function routeErrorHandler(err: any): NextResponse {
   return NextResponse.json({ isSuccess: false, message: 'Internal server error' });
 }
 import CryptoJS from "crypto-js";
-const aesChars = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
-const aesCharsLen = aesChars.length;
 
-export function randomString(len: number): string {
-  let ret = "";
+const AES_CHARS: string = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678";
+const AES_CHARS_LEN: number = AES_CHARS.length;
+
+function randomString(len: number): string {
+  let retStr: string = "";
   for (let i = 0; i < len; i++) {
-    ret += aesChars.charAt(Math.floor(Math.random() * aesCharsLen));
+    retStr += AES_CHARS.charAt(Math.floor(Math.random() * AES_CHARS_LEN));
   }
-  return ret;
+  return retStr;
 }
 
-function getAesString(data: string, keyStr: string, ivStr: string): string {
-  const key = CryptoJS.enc.Utf8.parse(keyStr.trim());
-  const iv = CryptoJS.enc.Utf8.parse(ivStr);
-  return CryptoJS.AES.encrypt(data, key, {
-    iv,
+function getAesString(data: string, key0: string, iv0: string): string {
+  key0 = key0.replace(/(^\s+)|(\s+$)/g, "");
+
+  const key = CryptoJS.enc.Utf8.parse(key0);
+  const iv = CryptoJS.enc.Utf8.parse(iv0);
+
+  const encrypted = CryptoJS.AES.encrypt(data, key, {
+    iv: iv,
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7
-  }).toString();
+  });
+
+  return encrypted.toString();
 }
 
-export function encryptAES(data: string, key?: string): string {
-  if (!key) return data;
-  const iv = randomString(16);
-  return getAesString(randomString(64) + data, key, iv);
-}
-
-export function encodePassword(pwd: string, key?: string): string {
+export function encodePassword(pwd0: string, key: string): string {
   try {
-    return encryptAES(pwd, key);
+    const iv = randomString(16);
+    const combinedPassword = randomString(64) + pwd0;
+    return getAesString(combinedPassword, key, iv);
   } catch (e) {
-    console.log(e)
-    return pwd;
+    console.error("Error encrypting password:", e);
   }
+  return pwd0;
 }

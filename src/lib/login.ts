@@ -1,4 +1,4 @@
-import { get, post, encodePassword, decodeBase64Cookies, postForm } from './utils';
+import { get, encodePassword, decodeBase64Cookies, postForm } from './utils';
 import * as cheerio from 'cheerio';
 import { CredentialState, SessionExpiredError } from '@/lib/types';
 import { NextRequest } from 'next/server';
@@ -39,16 +39,17 @@ export async function getLoginToken(
     state.cookies,
   );
   const $ = cheerio.load(data);
+  const pwdLogin = $('#pwdLoginDiv').first();
 
-  const salt = $('#pwdEncryptSalt').val() as string;
+  const salt = pwdLogin.find('#pwdEncryptSalt').val() as string;
 
   const token = {
     captcha: '',
-    lt: $('[name="lt"]').val() as string,
+    lt: pwdLogin.find('input[name="lt"]').val() as string,
     cllt: 'userNameLogin',
-    dllt: $('[name="dllt"]').val() as string,
-    execution: $('[name="execution"]').val() as string,
-    eventId: $('[name="_eventId"]').val() as string,
+    dllt: pwdLogin.find('input[name="dllt"]').val() as string,
+    execution: pwdLogin.find('input[name="execution"]').val() as string,
+    eventId: pwdLogin.find('input[name="_eventId"]').val() as string,
   };
 
   return { salt, token, cookies };
@@ -64,15 +65,14 @@ export async function login(state: CredentialState, password: string): Promise<C
   const data = {
     username: state.studentId,
     password: encodedPassword,
-    captcha: token?.captcha,
-    lt: token?.lt,
-    cllt: token?.cllt,
-    dllt: token?.dllt,
-    execution: token?.execution,
-    _eventId: token?.eventId,
+    captcha: token?.captcha || '',
+    lt: token?.lt || '',
+    cllt: token?.cllt || '',
+    dllt: token?.dllt || '',
+    execution: token?.execution || '',
+    _eventId: token?.eventId || '',
   };
 
-  console.log(encodedPassword)
   const { cookies: newCookies } = await postForm(
     'https://ids.shanghaitech.edu.cn/authserver/login',
     data,

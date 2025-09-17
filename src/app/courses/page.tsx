@@ -51,17 +51,16 @@ const CourseTablePage = () => {
         const response = await getSemesters();
         if (response.isSuccess) {
           const semesterData = response.message.semesters;
-          const semestersMap = new Map<string, { year: number; term: number }>();
+          const semestersMap = new Map<string, { year: string; term: number }>();
 
           Object.keys(semesterData).forEach((year) => {
             Object.entries(semesterData[year]).forEach(([term, id]) => {
-              semestersMap.set(id as string, { year: Number(year), term: Number(term) });
+              semestersMap.set(id as string, { year: String(year), term: Number(term) });
             });
           });
-
           setSemesters(semestersMap);
 
-          const defaultSemester = response.message.default_semester;
+          const defaultSemester = response.message.defaultSemester;
           await handleSemesterChange(defaultSemester);
         } else if (response.message === "Session expired") {
           setError("登录失效，请重新登录");
