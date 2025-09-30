@@ -214,6 +214,7 @@ export default function CourseTablePage() {
 
             <div className="flex items-center gap-2">
               <Button
+                variant="outline"
                 onClick={() => setModalOpen(true)}
                 disabled={loading || !courseData}
                 className="flex items-center gap-2 hover:cursor-pointer"

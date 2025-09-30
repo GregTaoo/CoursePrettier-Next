@@ -107,6 +107,7 @@ export default function App() {
               </div>
             </div>
             <Button
+              variant="outline"
               type="submit"
               className="w-full hover:cursor-pointer"
               disabled={loading}

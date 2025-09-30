@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import ThemeWrapper from '@/components/ThemeWrapper';
+import ThemeProvider from '@/components/ThemeProvider';
 import React from 'react';
 import './global.css';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
   title: "CoursePrettier",
@@ -16,7 +17,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ margin: 0 }}>
-        <ThemeWrapper>{children}</ThemeWrapper>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ThemeToggle/>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
