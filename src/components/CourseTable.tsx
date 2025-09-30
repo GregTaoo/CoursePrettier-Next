@@ -16,9 +16,10 @@ interface CourseSlot {
 interface CourseTableProps {
   courseTable: any[];
   periodsData: string[][];
+  setPreviewModalContent: (content: any) => void;
 }
 
-export default function CourseTable({ courseTable, periodsData }: CourseTableProps) {
+export default function CourseTable({ courseTable, periodsData, setPreviewModalContent }: CourseTableProps) {
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   // Calculate rowspan for each cell
@@ -58,13 +59,13 @@ export default function CourseTable({ courseTable, periodsData }: CourseTablePro
     const name = match ? match[1].trim() : originalName;
     const code = match ? match[2].trim() : null;
 
-    return (
-      <div className="flex flex-col p-3 justify-items-start items-start">
+    const children = (
+      <div className="flex flex-col">
         <div className="font-medium text-sm leading-tight text-foreground mb-1">
           {name}
         </div>
         {code && (
-          <Badge variant="secondary" className="mb-2 max-w-fit">
+          <Badge variant="secondary" className="mb-2 max-w-full">
             {code}
           </Badge>
         )}
@@ -75,10 +76,10 @@ export default function CourseTable({ courseTable, periodsData }: CourseTablePro
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <CalendarIcon className="h-3 w-3 flex-shrink-0" />
                 <span>
-                  第{week.minWeek === week.maxWeek
+                      第{week.minWeek === week.maxWeek
                   ? week.minWeek
                   : `${week.minWeek}~${week.maxWeek}`}周
-                </span>
+                    </span>
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPinIcon className="h-3 w-3 flex-shrink-0" />
@@ -91,6 +92,15 @@ export default function CourseTable({ courseTable, periodsData }: CourseTablePro
             </div>
           ))}
         </div>
+      </div>
+    );
+
+    return (
+      <div
+        className="p-3 max-h-[200px] hover:cursor-pointer"
+        onClick={() => setPreviewModalContent(children)}
+      >
+        {children}
       </div>
     );
   };

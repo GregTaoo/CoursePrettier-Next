@@ -108,7 +108,7 @@ export default function App() {
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full hover:cursor-pointer"
               disabled={loading}
             >
               {loading ? "登录中..." : "提交"}

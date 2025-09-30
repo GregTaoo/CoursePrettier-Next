@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from 'react';
 import ICSGenerator from "@/components/ICSGenerator";
 import CourseTable from "@/components/CourseTable";
 import { getSemesters, getCourseTable, logout } from "@/lib/frontend/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogOut, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
+import ContentPreview from '@/components/ContentPreview';
 
 export default function CourseTablePage() {
   const [semesters, setSemesters] = useState(new Map());
@@ -20,6 +21,8 @@ export default function CourseTablePage() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [previewModalContent, setPreviewModalContent] = useState<null | string | ReactNode>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [currentYear, setCurrentYear] = useState<number>(2025);
   const [currentSemester, setCurrentSemester] = useState<number>(1);
   const router = useRouter();
@@ -67,7 +70,7 @@ export default function CourseTablePage() {
       }
     };
 
-    fetchSemesters();
+    fetchSemesters().catch(() => setError("获取学期数据失败"));
   }, []);
 
   const handleLogout = async () => {
@@ -143,7 +146,7 @@ export default function CourseTablePage() {
       for (const match of weeks.matchAll(/1+/g)) {
         const start = match.index!;
         const end = start + match[0].length - 1;
-        segments.push({ start: start + 1, end: end + 1 }); // Convert to 1-based indexing
+        segments.push({ start: start, end: end });
       }
 
       segments.forEach(({ start, end }) => {
@@ -194,14 +197,14 @@ export default function CourseTablePage() {
                 value={selectedSemesterId || undefined}
                 onValueChange={handleSemesterChange}
               >
-                <SelectTrigger className="w-[250px]">
+                <SelectTrigger className="w-[250px] hover:cursor-pointer">
                   <SelectValue placeholder="选择学期" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from(semesters)
                     .reverse()
                     .map(([id, { year, term }]) => (
-                      <SelectItem key={id} value={id}>
+                      <SelectItem key={id} value={id} className="hover:cursor-pointer">
                         {year} 学年, 第 {term} 学期
                       </SelectItem>
                     ))}
@@ -213,7 +216,7 @@ export default function CourseTablePage() {
               <Button
                 onClick={() => setModalOpen(true)}
                 disabled={loading || !courseData}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:cursor-pointer"
               >
                 <Calendar className="h-4 w-4" />
                 导出 iCal 日程
@@ -221,7 +224,7 @@ export default function CourseTablePage() {
               <Button
                 variant="destructive"
                 onClick={handleLogout}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
                 登出
@@ -246,6 +249,10 @@ export default function CourseTablePage() {
         <CourseTable
           courseTable={courseTable}
           periodsData={courseData.periods}
+          setPreviewModalContent={(content) => {
+            setPreviewModalContent(content);
+            setPreviewModalOpen(true);
+          }}
         />
       ) : null}
 
@@ -255,6 +262,11 @@ export default function CourseTablePage() {
         courseData={courseData}
         year={currentYear}
         semester={currentSemester}
+      />
+      <ContentPreview
+        externalOpen={previewModalOpen}
+        setExternalOpen={setPreviewModalOpen}
+        data={previewModalContent}
       />
     </div>
   );
