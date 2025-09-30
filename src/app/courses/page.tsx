@@ -1,26 +1,18 @@
-"use client";
+'use client'
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ICSGenerator from "@/components/ICSGenerator";
+import CourseTable from "@/components/CourseTable";
 import { getSemesters, getCourseTable, logout } from "@/lib/frontend/client";
-import {
-  Table,
-  Select,
-  Spin,
-  Alert,
-  Typography,
-  Row,
-  Col,
-  Card,
-  Space,
-  List,
-  Layout,
-  Button
-} from "antd";
-import { LoadingOutlined, UserOutlined, HomeOutlined, CalendarOutlined } from "@ant-design/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LogOut, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const CourseTablePage = () => {
+export default function CourseTablePage() {
   const [semesters, setSemesters] = useState(new Map());
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | null>(null);
   const [courseData, setCourseData] = useState<any>(null);
@@ -30,17 +22,16 @@ const CourseTablePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentYear, setCurrentYear] = useState<number>(2025);
   const [currentSemester, setCurrentSemester] = useState<number>(1);
-
   const router = useRouter();
 
-  // 获取学期数据
+  // Check authentication and fetch semesters
   useEffect(() => {
     const cookies = document.cookie;
     const loginSession = cookies.split(";").some(c => c.trim().startsWith("LOGIN_SESSION="));
     const studentId = cookies.split(";").some(c => c.trim().startsWith("STUDENT_ID="));
 
     if (!loginSession || !studentId) {
-      router.push("/"); // Next.js 路由跳转
+      router.push("/");
       return;
     }
 
@@ -83,7 +74,7 @@ const CourseTablePage = () => {
     try {
       const response = await logout();
       if (response.isSuccess) {
-        router.push("/"); // Next.js 路由跳转
+        router.push("/");
       } else {
         setError("登出失败: " + response.message);
       }
@@ -121,89 +112,11 @@ const CourseTablePage = () => {
       const item = Array.from(semesters).reverse().find(([semesterId]) => semesterId === selectedSemesterId);
       if (item) {
         const { year, term } = item[1];
-        setCurrentYear(year);
+        setCurrentYear(parseInt(year));
         setCurrentSemester(term);
       }
     } catch {}
   }, [selectedSemesterId, semesters]);
-
-  // 合并表格逻辑和列渲染（略，与原逻辑相同）
-  const onColCell = (col: number, record: any, index: number) => {
-    if (!courseTable[index]) return {};
-    if (courseTable[index][col] === "") return { rowSpan: 1 };
-    else if (index > 0 && courseTable[index][col].key === courseTable[index - 1][col].key)
-      return { rowSpan: 0 };
-    else {
-      let p = index + 1;
-      while (p < courseTable.length && courseTable[p][col].key === courseTable[index][col].key) p++;
-      return { rowSpan: p - index };
-    }
-  };
-
-  const onRender = (col: number, record: any) => {
-    const originalName = record[col].name;
-    const match = originalName ? originalName.match(/(.*)\(([\w.]+)\)/) : null;
-    const name = match ? match[1].trim() : originalName;
-    const code = match ? match[2].trim() : null;
-
-    return record[col] !== "" ? (
-      <>
-        <Row>
-          <Space direction="horizontal">
-            <Typography.Text strong>{name}</Typography.Text>
-            {code && <Typography.Text type="secondary">{code}</Typography.Text>}
-          </Space>
-        </Row>
-        <List
-          itemLayout="horizontal"
-          dataSource={record[col].weeks}
-          renderItem={(week: any) => (
-            <List.Item>
-              <Col>
-                <Row>
-                  <Space>
-                    <CalendarOutlined />
-                    <Typography.Text>
-                      第
-                      {week.minWeek === week.maxWeek
-                        ? week.minWeek
-                        : `${week.minWeek}~${week.maxWeek}`}
-                      周
-                    </Typography.Text>
-                  </Space>
-                </Row>
-                <Row>
-                  <Space>
-                    <HomeOutlined />
-                    {week.classroom}
-                  </Space>
-                </Row>
-                <Row>
-                  <Space>
-                    <UserOutlined />
-                    {week.teachers}
-                  </Space>
-                </Row>
-              </Col>
-            </List.Item>
-          )}
-        />
-      </>
-    ) : (
-      ""
-    );
-  };
-
-  const columns = [
-    { title: "时间", dataIndex: "time", key: "time", width: 90 },
-    ...Array.from({ length: 7 }, (_, i) => ({
-      title: `周${i + 1}`,
-      dataIndex: `${i + 1}`,
-      key: `${i + 1}`,
-      onCell: (record: any, index: number) => onColCell(i + 1, record, index),
-      render: (_: any, record: any) => onRender(i + 1, record)
-    }))
-  ];
 
   const generateTableData = (data: any) => {
     const table: any[] = [];
@@ -213,12 +126,7 @@ const CourseTablePage = () => {
     for (let i = 1; i <= periodsData.length; i++) {
       table.push({
         key: i,
-        time: (
-          <>
-            <Col>第 {i} 节</Col>
-            <Col>{periodsData[i - 1][i - 1]}</Col>
-          </>
-        ),
+        time: `第 ${i} 节`,
         1: "",
         2: "",
         3: "",
@@ -235,14 +143,12 @@ const CourseTablePage = () => {
       for (const match of weeks.matchAll(/1+/g)) {
         const start = match.index!;
         const end = start + match[0].length - 1;
-        segments.push({ start, end });
+        segments.push({ start: start + 1, end: end + 1 }); // Convert to 1-based indexing
       }
 
       segments.forEach(({ start, end }) => {
-        // @ts-ignore
-        // TODO
-        Object.entries(times).forEach(([day, periods]: [string, string]) => {
-          periods.split(",").forEach((periodStr) => {
+        Object.entries(times).forEach(([day, periods]: [string, string] & any) => {
+          periods.split(",").forEach((periodStr: string) => {
             const period = Number(periodStr);
             const cell = table[period - 1][day] || { key: "", name: "", weeks: [] };
             if (!cell.key) {
@@ -271,61 +177,85 @@ const CourseTablePage = () => {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <div style={{ padding: "20px" }}>
-        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: "20px" }} />}
-        <Card style={{ marginBottom: "20px" }}>
-          <Row align="middle" justify="space-around">
-            <Col span={12}>
-              <Space>
-                <Typography.Text>选择学期</Typography.Text>
-                <Select
-                  disabled={loading}
-                  value={selectedSemesterId}
-                  style={{ width: "250px" }}
-                  onChange={handleSemesterChange}
-                  placeholder="选择学期"
-                  options={Array.from(semesters)
+    <div className="min-h-screen bg-background p-6">
+      {error && (
+        <Alert className="mb-6" variant="destructive">
+          {error}
+        </Alert>
+      )}
+
+      <Card className="mb-6">
+        <CardContent>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium">选择学期</label>
+              <Select
+                disabled={loading}
+                value={selectedSemesterId || undefined}
+                onValueChange={handleSemesterChange}
+              >
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="选择学期" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from(semesters)
                     .reverse()
-                    .map(([id, { year, term }]) => ({
-                      label: `${year} 学年, 第 ${term} 学期`,
-                      value: id
-                    }))}
-                />
-              </Space>
-            </Col>
-            <Col span={4}>
-              <Space>
-                <Button type="primary" onClick={() => setModalOpen(true)} disabled={loading}>
-                  导出 iCal 日程
-                </Button>
-                <ICSGenerator
-                  externalOpen={modalOpen}
-                  setExternalOpen={setModalOpen}
-                  courseData={courseData}
-                  year={currentYear}
-                  semester={currentSemester}
-                />
-                <Button danger onClick={handleLogout} autoInsertSpace={false}>
-                  登出
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Card>
+                    .map(([id, { year, term }]) => (
+                      <SelectItem key={id} value={id}>
+                        {year} 学年, 第 {term} 学期
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {loading ? (
-          <div style={{ textAlign: "center", marginTop: "40px" }}>
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} />
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setModalOpen(true)}
+                disabled={loading || !courseData}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                导出 iCal 日程
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                登出
+              </Button>
+            </div>
           </div>
-        ) : (
-          // @ts-ignore
-          // TODO
-          <Table columns={columns} dataSource={courseTable} pagination={false} bordered size="middle" style={{ marginTop: "20px" }} />
-        )}
-      </div>
-    </Layout>
-  );
-};
+        </CardContent>
+      </Card>
 
-export default CourseTablePage;
+      {loading ? (
+        <Card className="p-6">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-full" />
+            <div className="grid grid-cols-8 gap-2">
+              {Array.from({ length: 96 }).map((_, i) => (
+                <Skeleton key={i} className="h-20" />
+              ))}
+            </div>
+          </div>
+        </Card>
+      ) : courseData ? (
+        <CourseTable
+          courseTable={courseTable}
+          periodsData={courseData.periods}
+        />
+      ) : null}
+
+      <ICSGenerator
+        externalOpen={modalOpen}
+        setExternalOpen={setModalOpen}
+        courseData={courseData}
+        year={currentYear}
+        semester={currentSemester}
+      />
+    </div>
+  );
+}

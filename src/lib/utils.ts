@@ -1,3 +1,10 @@
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 import {ApiResponse, SessionExpiredError} from '@/lib/types';
 import axios, { AxiosResponse } from 'axios';
 import {NextResponse} from "next/server";

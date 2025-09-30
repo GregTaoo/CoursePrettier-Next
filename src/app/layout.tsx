@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ThemeWrapper from '@/components/ThemeWrapper';
 import React from 'react';
+import './global.css';
 
 export const metadata: Metadata = {
   title: "CoursePrettier",

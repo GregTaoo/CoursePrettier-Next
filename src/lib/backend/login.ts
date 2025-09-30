@@ -1,4 +1,4 @@
-import { get, encodePassword, decodeBase64Cookies, postForm } from '../utils';
+import { get, encodePassword, decodeBase64Cookies, postForm } from '@/lib/utils';
 import * as cheerio from 'cheerio';
 import { CredentialState, SessionExpiredError } from '@/lib/types';
 import { NextRequest } from 'next/server';

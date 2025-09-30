@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const BASE_URL = (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") ? 'http://localhost:3000' : '';
 
-export const login = async (studentId, password) => {
+export const login = async (studentId: string, password: string) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/login`, { studentId, password }, {
       withCredentials: true
@@ -35,7 +35,7 @@ export const getSemesters = async () => {
   }
 };
 
-export const getCourseTable = async (semester_id) => {
+export const getCourseTable = async (semester_id: string) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/course_table`, { semester_id }, {
       withCredentials: true
@@ -46,7 +46,7 @@ export const getCourseTable = async (semester_id) => {
   }
 };
 
-export const getTermBegin = async (year, semester) => {
+export const getTermBegin = async (year: string | number, semester: string | number) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/term_begin`, { year, semester }, {
       withCredentials: true

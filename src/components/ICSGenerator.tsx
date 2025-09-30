@@ -1,9 +1,7 @@
-"use client";
-
-import { useEffect } from "react";
-import { Modal, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { useEffect } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { getTermBegin } from '@/lib/frontend/client';
+import { Loader2 } from 'lucide-react';
 
 interface ICSGeneratorProps {
   externalOpen: boolean;
@@ -13,7 +11,13 @@ interface ICSGeneratorProps {
   semester: string | number;
 }
 
-export default function ICSGenerator({ externalOpen, setExternalOpen, courseData, year, semester }: ICSGeneratorProps) {
+export default function ICSGenerator({
+                                       externalOpen,
+                                       setExternalOpen,
+                                       courseData,
+                                       year,
+                                       semester
+                                     }: ICSGeneratorProps) {
 
   const parseTimeFormat = (time: string) => {
     let [hour, minute] = time.split(":");
@@ -52,8 +56,7 @@ X-WR-TIMEZONE:Asia/Shanghai
       for (let i = 1; i <= 18; i++) {
         if (course.weeks[i] === "1") {
           const monday0 = firstMonday0 + (i - 1) * 7 * 24 * 60 * 60 * 1000;
-          // @ts-ignore
-          Object.entries(course.times).forEach(([day, periods]: [string, string]) => {
+          Object.entries(course.times).forEach(([day, periods]: [string, string] & any) => {
             const dateObj = new Date(monday0 + (parseInt(day) - 1) * 24 * 60 * 60 * 1000);
             const dateString =
               dateObj.getFullYear().toString() +
@@ -88,22 +91,30 @@ END:VEVENT\n`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
     setExternalOpen(false);
   };
 
   useEffect(() => {
-    if (externalOpen) generateIcal();
+    if (externalOpen) {
+      generateIcal();
+    }
   }, [externalOpen]);
 
   return (
-    <Modal
-      title="正在导出 iCal 日程"
-      open={externalOpen}
-      onCancel={() => setExternalOpen(false)}
-      footer={null}
-    >
-      <Spin indicator={<LoadingOutlined style={{ fontSize: 40 }} spin />} />
-    </Modal>
+    <Dialog open={externalOpen} onOpenChange={setExternalOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>正在导出 iCal 日程</DialogTitle>
+          <DialogDescription>
+            正在生成课程表文件，请稍候...
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
