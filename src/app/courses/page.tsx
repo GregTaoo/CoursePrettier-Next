@@ -1,15 +1,15 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import ICSGenerator from "@/components/ICSGenerator";
 import CourseTable from "@/components/CourseTable";
 import { getSemesters, getCourseTable, logout } from "@/lib/frontend/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Calendar } from "lucide-react";
+import { LogOut, Calendar, AlertCircleIcon } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import ContentPreview from '@/components/ContentPreview';
 
@@ -183,7 +183,10 @@ export default function CourseTablePage() {
     <div className="min-h-screen bg-background p-6">
       {error && (
         <Alert className="mb-6" variant="destructive">
-          {error}
+          <AlertCircleIcon/>
+          <AlertDescription>
+            {error}
+          </AlertDescription>
         </Alert>
       )}
 
