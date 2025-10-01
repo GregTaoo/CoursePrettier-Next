@@ -3,7 +3,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import ICSGenerator from "@/components/ICSGenerator";
 import CourseTable from "@/components/CourseTable";
-import { getSemesters, getCourseTable, logout } from "@/lib/frontend/client";
+import { getSemesters, getCourseTable, logout, getCourseBench } from '@/lib/frontend/client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import ContentPreview from '@/components/ContentPreview';
 
 export default function CourseTablePage() {
   const [semesters, setSemesters] = useState(new Map());
+  const [courseBench, setCourseBench] = useState(new Map());
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | null>(null);
   const [courseData, setCourseData] = useState<any>(null);
   const [courseTable, setCourseTable] = useState<any[]>([]);
@@ -70,7 +71,26 @@ export default function CourseTablePage() {
       }
     };
 
-    fetchSemesters().catch(() => setError("获取学期数据失败"));
+    fetchSemesters().catch(e => {
+      setError('获取学期数据失败');
+      console.error(e);
+    });
+  }, []);
+
+  useEffect(() => {
+    const getCourseBenchData = async () => {
+      const courseBenchData = await getCourseBench();
+      const map = new Map();
+      courseBenchData.data.map(({ name, id }: { name: string; id: string }) => {
+        map.set(name.trim(), id);
+      })
+      setCourseBench(map);
+    };
+
+    getCourseBenchData().catch(e => {
+      setError('获取 CourseBench 数据失败');
+      console.error(e);
+    });
   }, []);
 
   const handleLogout = async () => {
@@ -98,7 +118,7 @@ export default function CourseTablePage() {
         setCourseTable(generateTableData(courses.message));
       } else if (courses.message === "Session expired") {
         setError("登录失效，请重新登录");
-        handleLogout();
+        await handleLogout();
       } else {
         setError("获取课程表失败: " + courses.message);
       }
@@ -256,6 +276,10 @@ export default function CourseTablePage() {
           setPreviewModalContent={(content) => {
             setPreviewModalContent(content);
             setPreviewModalOpen(true);
+          }}
+          getCourseBenchLink={(name) => {
+            const id = courseBench.get(name.trim());
+            return id ? `https://coursebench.org/course/${id}` : undefined;
           }}
         />
       ) : null}

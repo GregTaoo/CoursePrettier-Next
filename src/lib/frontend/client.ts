@@ -56,3 +56,12 @@ export const getTermBegin = async (year: string | number, semester: string | num
     throw new Error('Failed to fetch term begin date');
   }
 }
+
+export const getCourseBench = async () => {
+  try {
+    const response = await axios.get('https://coursebench.org/v1/course/all');
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to get courses from CourseBench');
+  }
+}

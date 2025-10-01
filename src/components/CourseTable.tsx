@@ -1,6 +1,10 @@
+'use client'
+
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { CalendarIcon, MapPinIcon, UserIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRouter } from "next/navigation";
 
 interface CourseSlot {
   key: string;
@@ -17,9 +21,11 @@ interface CourseTableProps {
   courseTable: any[];
   periodsData: string[][];
   setPreviewModalContent: (content: any) => void;
+  getCourseBenchLink: (name: string) => string | undefined;
 }
 
-export default function CourseTable({ courseTable, periodsData, setPreviewModalContent }: CourseTableProps) {
+export default function CourseTable({ courseTable, periodsData, setPreviewModalContent, getCourseBenchLink }: CourseTableProps) {
+  const router = useRouter();
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   // Calculate rowspan for each cell
@@ -60,7 +66,7 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
     const code = match ? match[2].trim() : null;
 
     const children = (
-      <div className="flex flex-col">
+      <>
         <div className="font-medium text-sm leading-tight text-foreground mb-1">
           {name}
         </div>
@@ -92,13 +98,30 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
             </div>
           ))}
         </div>
+      </>
+    );
+
+    const courseBenchLink = getCourseBenchLink(name);
+
+    const previewContent = (
+      <div className="flex flex-col">
+        {children}
+        {courseBenchLink &&
+          <Button
+            variant="outline"
+            onClick={() => router.push(courseBenchLink)}
+            className="mt-3 hover:cursor-pointer text-xs"
+          >
+            在 CourseBench 中查看
+          </Button>
+        }
       </div>
     );
 
     return (
       <div
-        className="p-3 max-h-[200px] hover:cursor-pointer"
-        onClick={() => setPreviewModalContent(children)}
+        className="p-3 max-h-[200px] hover:cursor-pointer flex flex-col"
+        onClick={() => setPreviewModalContent(previewContent)}
       >
         {children}
       </div>
