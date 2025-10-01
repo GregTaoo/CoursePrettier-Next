@@ -89,11 +89,11 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPinIcon className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">{week.classroom}</span>
+                <span>{week.classroom}</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <UserIcon className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">{week.teachers}</span>
+                <span>{week.teachers}</span>
               </div>
             </div>
           ))}
