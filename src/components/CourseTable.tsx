@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { CalendarIcon, MapPinIcon, UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
 interface CourseSlot {
   key: string;
@@ -24,14 +24,19 @@ interface CourseTableProps {
   getCourseBenchLink: (name: string) => string | undefined;
 }
 
-export default function CourseTable({ courseTable, periodsData, setPreviewModalContent, getCourseBenchLink }: CourseTableProps) {
+export default function CourseTable({
+                                      courseTable,
+                                      periodsData,
+                                      setPreviewModalContent,
+                                      getCourseBenchLink,
+                                    }: CourseTableProps) {
   const router = useRouter();
   const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   // Calculate rowspan for each cell
   const calculateRowSpan = (periodIndex: number, dayIndex: number) => {
     const courseSlot = courseTable[periodIndex]?.[dayIndex + 1];
-    if (!courseSlot || courseSlot === "" || typeof courseSlot === 'string') {
+    if (!courseSlot || courseSlot === '' || typeof courseSlot === 'string') {
       return 1;
     }
 
@@ -55,7 +60,7 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
   };
 
   const renderCourseContent = (courseSlot: CourseSlot | string) => {
-    if (!courseSlot || courseSlot === "" || typeof courseSlot === 'string') {
+    if (!courseSlot || courseSlot === '' || typeof courseSlot === 'string') {
       return null;
     }
 
@@ -132,16 +137,16 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
     <Card className="p-3 overflow-auto">
       <table className="w-full border-collapse table-fixed min-w-[600px]">
         <thead>
-          <tr>
-            <th className="bg-muted p-3 border text-center text-sm align-center">
-              时间
+        <tr>
+          <th className="bg-muted p-3 border text-center text-sm align-center">
+            时间
+          </th>
+          {days.map((day) => (
+            <th key={day} className="bg-muted p-3 border text-center text-sm align-center">
+              {day}
             </th>
-            {days.map((day) => (
-              <th key={day} className="bg-muted p-3 border text-center text-sm align-center">
-                {day}
-              </th>
-            ))}
-          </tr>
+          ))}
+        </tr>
         </thead>
         <tbody>
         {courseTable.map((row, periodIndex) => (
@@ -163,7 +168,7 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
               }
 
               const courseSlot = row[dayIndex];
-              const isEmpty = !courseSlot || courseSlot === "";
+              const isEmpty = !courseSlot || courseSlot === '';
 
               return (
                 <td
@@ -176,7 +181,7 @@ export default function CourseTable({ courseTable, periodsData, setPreviewModalC
                   }`}
                   style={{
                     minHeight: `${40 * rowSpan}px`,
-                    height: `${40 * rowSpan}px`
+                    height: `${40 * rowSpan}px`,
                   }}
                 >
                   {renderCourseContent(courseSlot)}

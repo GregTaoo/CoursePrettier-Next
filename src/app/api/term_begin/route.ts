@@ -11,11 +11,7 @@ export interface StartDateParams {
 export async function POST(req: NextRequest) {
   try {
     const params: StartDateParams = await req.json();
-    const date = await getTermBegin(
-      createCredential(req),
-      params.year,
-      params.semester,
-    );
+    const date = await getTermBegin(createCredential(req), params.year, params.semester);
     return NextResponse.json({ isSuccess: true, message: date });
   } catch (err: any) {
     return routeErrorHandler(err);

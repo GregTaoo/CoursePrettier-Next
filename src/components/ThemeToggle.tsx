@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Moon, Sun, Computer } from "lucide-react"
-import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/button"
+import * as React from 'react';
 import { useEffect, useState } from 'react';
+import { Computer, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
 
 export default function ThemeToggle() {
   const { setTheme, theme } = useTheme();
@@ -18,21 +18,21 @@ export default function ThemeToggle() {
   if (!mounted) return null;
 
   const cycleTheme = () => {
-    if (theme === "system") {
-      setTheme("light");
-    } else if (theme === "light") {
-      setTheme("dark");
+    if (theme === 'system') {
+      setTheme('light');
+    } else if (theme === 'light') {
+      setTheme('dark');
     } else {
-      setTheme("system");
+      setTheme('system');
     }
   };
 
   return (
     <div className="fixed bottom-4 right-4">
       <Button variant="outline" onClick={cycleTheme} className="hover:cursor-pointer">
-        {theme === "system" && <Computer/>}
-        {theme === "light" && <Sun/>}
-        {theme === "dark" && <Moon/>}
+        {theme === 'system' && <Computer />}
+        {theme === 'light' && <Sun />}
+        {theme === 'dark' && <Moon />}
       </Button>
     </div>
   );

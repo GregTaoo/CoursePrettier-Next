@@ -91,8 +91,7 @@ export async function getCourseTable(
     }
   }
 
-  if (!tableId)
-    throw new Error('tableId not found');
+  if (!tableId) throw new Error('tableId not found');
 
   const res2: ApiResponse = await postForm(
     `https://eams.shanghaitech.edu.cn/eams/courseTableForStd!courseTable.action?ignoreHead=1&setting.kind=std&startWeek=${startWeek ?? ''}&semester.id=${semesterId}&ids=${tableId}&tutorRedirectstudentId=${tableId}`,
@@ -101,8 +100,7 @@ export async function getCourseTable(
   );
   const data2: string = res2.data;
 
-  if (data2.includes('统一身份认证'))
-    throw new SessionExpiredError();
+  if (data2.includes('统一身份认证')) throw new SessionExpiredError();
 
   // 解析课时段
   const [periodString, ...courseStrings] = data2.split('var teachers');

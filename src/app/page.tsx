@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { login } from '@/lib/frontend/client';
-import { UserIcon, LockIcon, AlertCircleIcon, CheckCircle2Icon } from 'lucide-react';
-import { useRouter } from "next/navigation";
+import { AlertCircleIcon, CheckCircle2Icon, LockIcon, UserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function App() {
   const [userId, setUserId] = useState('');
@@ -20,14 +20,14 @@ export default function App() {
   // Check login status and student ID cookies on component mount
   useEffect(() => {
     const cookies = document.cookie;
-    const loginSession = cookies.split(";").some(c => c.trim().startsWith("LOGIN_SESSION="));
-    const studentId = cookies.split(";").some(c => c.trim().startsWith("STUDENT_ID="));
+    const loginSession = cookies.split(';').some(c => c.trim().startsWith('LOGIN_SESSION='));
+    const studentId = cookies.split(';').some(c => c.trim().startsWith('STUDENT_ID='));
 
     if (loginSession && studentId) {
       // Already logged in, redirect to courses page
       setIsLoggedIn(true);
-      setError("登录成功，正在跳转...");
-      router.push("/courses");
+      setError('登录成功，正在跳转...');
+      router.push('/courses');
     }
   }, []);
 
@@ -38,16 +38,16 @@ export default function App() {
     try {
       const loginData = await login(userId, password);
       if (loginData && loginData?.isSuccess) {
-        setError("");
-        localStorage.setItem("user_data", JSON.stringify(loginData));
+        setError('');
+        localStorage.setItem('user_data', JSON.stringify(loginData));
         setIsLoggedIn(true);
-        setError("登录成功，正在跳转...");
-        router.push("/courses");
+        setError('登录成功，正在跳转...');
+        router.push('/courses');
       } else {
-        setError("登录失败，请检查学号和密码是否正确");
+        setError('登录失败，请检查学号和密码是否正确');
       }
     } catch (err) {
-      setError("登录失败，请检查学号和密码是否正确");
+      setError('登录失败，请检查学号和密码是否正确');
     } finally {
       setLoading(false);
     }
@@ -69,8 +69,8 @@ export default function App() {
         </CardHeader>
         <CardContent>
           {error && (
-            <Alert className="mb-4" variant={isLoggedIn ? "default" : "destructive"}>
-              {isLoggedIn ? <CheckCircle2Icon/> : <AlertCircleIcon/>}
+            <Alert className="mb-4" variant={isLoggedIn ? 'default' : 'destructive'}>
+              {isLoggedIn ? <CheckCircle2Icon /> : <AlertCircleIcon />}
               <AlertDescription>
                 {error}
               </AlertDescription>
@@ -80,7 +80,8 @@ export default function App() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <UserIcon
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   id="userId"
                   type="text"
@@ -94,7 +95,8 @@ export default function App() {
             </div>
             <div className="space-y-2">
               <div className="relative">
-                <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <LockIcon
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   id="password"
                   type="password"
@@ -112,7 +114,7 @@ export default function App() {
               className="w-full hover:cursor-pointer"
               disabled={loading}
             >
-              {loading ? "登录中..." : "提交"}
+              {loading ? '登录中...' : '提交'}
             </Button>
           </form>
         </CardContent>

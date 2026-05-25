@@ -8,10 +8,10 @@ interface ContentPreviewProps {
 }
 
 export default function ContentPreview({
-                                       externalOpen,
-                                       setExternalOpen,
-                                       data,
-                                     }: ContentPreviewProps) {
+                                         externalOpen,
+                                         setExternalOpen,
+                                         data,
+                                       }: ContentPreviewProps) {
   return (
     <Dialog open={externalOpen} onOpenChange={setExternalOpen}>
       <DialogContent className="sm:max-w-[425px]">

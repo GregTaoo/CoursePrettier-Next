@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
 import React, { ReactNode, useEffect, useState } from 'react';
-import ICSGenerator from "@/components/ICSGenerator";
-import CourseTable from "@/components/CourseTable";
-import { getSemesters, getCourseTable, logout, getCourseBench } from '@/lib/frontend/client';
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import ICSGenerator from '@/components/ICSGenerator';
+import CourseTable from '@/components/CourseTable';
+import { getCourseBench, getCourseTable, getSemesters, logout } from '@/lib/frontend/client';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Calendar, AlertCircleIcon } from 'lucide-react';
-import { useRouter } from "next/navigation";
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircleIcon, Calendar, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import ContentPreview from '@/components/ContentPreview';
 
 export default function CourseTablePage() {
@@ -19,7 +19,7 @@ export default function CourseTablePage() {
   const [selectedSemesterId, setSelectedSemesterId] = useState<string | null>(null);
   const [courseData, setCourseData] = useState<any>(null);
   const [courseTable, setCourseTable] = useState<any[]>([]);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [previewModalContent, setPreviewModalContent] = useState<null | string | ReactNode>(null);
@@ -31,17 +31,17 @@ export default function CourseTablePage() {
   // Check authentication and fetch semesters
   useEffect(() => {
     const cookies = document.cookie;
-    const loginSession = cookies.split(";").some(c => c.trim().startsWith("LOGIN_SESSION="));
-    const studentId = cookies.split(";").some(c => c.trim().startsWith("STUDENT_ID="));
+    const loginSession = cookies.split(';').some(c => c.trim().startsWith('LOGIN_SESSION='));
+    const studentId = cookies.split(';').some(c => c.trim().startsWith('STUDENT_ID='));
 
     if (!loginSession || !studentId) {
-      router.push("/");
+      router.push('/');
       return;
     }
 
     const fetchSemesters = async () => {
       setLoading(true);
-      setError("");
+      setError('');
       try {
         const response = await getSemesters();
         if (response.isSuccess) {
@@ -57,15 +57,15 @@ export default function CourseTablePage() {
 
           const defaultSemester = response.message.defaultSemester;
           await handleSemesterChange(defaultSemester);
-        } else if (response.message === "Session expired") {
-          setError("登录失效，请重新登录");
+        } else if (response.message === 'Session expired') {
+          setError('登录失效，请重新登录');
           await handleLogout();
         } else {
-          setError("获取学期数据失败: " + response.message);
+          setError('获取学期数据失败: ' + response.message);
         }
       } catch (err) {
         console.error(err);
-        setError("获取学期数据失败");
+        setError('获取学期数据失败');
       } finally {
         setLoading(false);
       }
@@ -83,7 +83,7 @@ export default function CourseTablePage() {
       const map = new Map();
       courseBenchData.data.map(({ name, id }: { name: string; id: string }) => {
         map.set(name.trim(), id);
-      })
+      });
       setCourseBench(map);
     };
 
@@ -97,34 +97,34 @@ export default function CourseTablePage() {
     try {
       const response = await logout();
       if (response.isSuccess) {
-        router.push("/");
+        router.push('/');
       } else {
-        setError("登出失败: " + response.message);
+        setError('登出失败: ' + response.message);
       }
     } catch (err) {
-      setError("登出失败");
+      setError('登出失败');
     }
   };
 
   const handleSemesterChange = async (id: string) => {
     setSelectedSemesterId(id);
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       const courses = await getCourseTable(id);
       if (courses.isSuccess) {
         setCourseData(courses.message);
         setCourseTable(generateTableData(courses.message));
-      } else if (courses.message === "Session expired") {
-        setError("登录失效，请重新登录");
+      } else if (courses.message === 'Session expired') {
+        setError('登录失效，请重新登录');
         await handleLogout();
       } else {
-        setError("获取课程表失败: " + courses.message);
+        setError('获取课程表失败: ' + courses.message);
       }
     } catch (err) {
       console.error(err);
-      setError("获取课程表失败");
+      setError('获取课程表失败');
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,8 @@ export default function CourseTablePage() {
         setCurrentYear(parseInt(year));
         setCurrentSemester(term);
       }
-    } catch {}
+    } catch {
+    }
   }, [selectedSemesterId, semesters]);
 
   const generateTableData = (data: any) => {
@@ -150,13 +151,13 @@ export default function CourseTablePage() {
       table.push({
         key: i,
         time: `第 ${i} 节`,
-        1: "",
-        2: "",
-        3: "",
-        4: "",
-        5: "",
-        6: "",
-        7: ""
+        1: '',
+        2: '',
+        3: '',
+        4: '',
+        5: '',
+        6: '',
+        7: '',
       });
     }
 
@@ -171,14 +172,14 @@ export default function CourseTablePage() {
 
       segments.forEach(({ start, end }) => {
         Object.entries(times).forEach(([day, periods]: [string, string] & any) => {
-          periods.split(",").forEach((periodStr: string) => {
+          periods.split(',').forEach((periodStr: string) => {
             const period = Number(periodStr);
-            const cell = table[period - 1][day] || { key: "", name: "", weeks: [] };
+            const cell = table[period - 1][day] || { key: '', name: '', weeks: [] };
             if (!cell.key) {
               table[period - 1][day] = {
                 key: name + classroom + teachers + day,
                 name,
-                weeks: [{ minWeek: start, maxWeek: end, classroom, teachers }]
+                weeks: [{ minWeek: start, maxWeek: end, classroom, teachers }],
               };
             } else {
               cell.weeks.push({ minWeek: start, maxWeek: end, classroom, teachers });
@@ -203,7 +204,7 @@ export default function CourseTablePage() {
     <div className="min-h-screen bg-background p-6">
       {error && (
         <Alert className="mb-6" variant="destructive">
-          <AlertCircleIcon/>
+          <AlertCircleIcon />
           <AlertDescription>
             {error}
           </AlertDescription>
