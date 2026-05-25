@@ -16,6 +16,7 @@ export const login = async (studentId: string, password: string) => {
     );
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Login failed');
   }
 };
@@ -31,6 +32,7 @@ export const logout = async () => {
     );
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Logout failed');
   }
 };
@@ -46,6 +48,7 @@ export const getSemesters = async () => {
     );
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Failed to fetch semesters');
   }
 };
@@ -61,6 +64,7 @@ export const getCourseTable = async (semester_id: string) => {
     );
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Failed to fetch course table');
   }
 };
@@ -76,6 +80,7 @@ export const getTermBegin = async (year: string | number, semester: string | num
     );
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Failed to fetch term begin date');
   }
 };
@@ -85,6 +90,7 @@ export const getCourseBench = async () => {
     const response = await axios.get('https://coursebench.org/v1/course/all');
     return response.data;
   } catch (error) {
+    console.warn(error);
     throw new Error('Failed to get courses from CourseBench');
   }
 };
