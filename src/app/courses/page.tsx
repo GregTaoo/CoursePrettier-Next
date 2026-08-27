@@ -79,18 +79,22 @@ export default function CourseTablePage() {
 
   useEffect(() => {
     const getCourseBenchData = async () => {
-      const courseBenchData = await getCourseBench();
-      const map = new Map();
-      courseBenchData.data.map(({ name, id }: { name: string; id: string }) => {
-        map.set(name.trim(), id);
-      });
-      setCourseBench(map);
+      try {
+        const courseBenchData = await getCourseBench();
+        const map = new Map();
+        const courses = Array.isArray(courseBenchData?.data) ? courseBenchData.data : [];
+        courses.forEach(({ name, id }: { name?: string; id?: string }) => {
+          if (name && id) map.set(name.trim(), id);
+        });
+        setCourseBench(map);
+      } catch (e) {
+        // CourseBench is optional; an unavailable service must not affect the course table.
+        console.warn(e);
+        setCourseBench(new Map());
+      }
     };
 
-    getCourseBenchData().catch(e => {
-      setError('获取 CourseBench 数据失败');
-      console.error(e);
-    });
+    getCourseBenchData();
   }, []);
 
   const handleLogout = async () => {

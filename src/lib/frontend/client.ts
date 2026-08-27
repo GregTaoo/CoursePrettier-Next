@@ -91,6 +91,7 @@ export const getCourseBench = async () => {
     return response.data;
   } catch (error) {
     console.warn(error);
-    throw new Error('Failed to get courses from CourseBench');
+    // CourseBench is an optional enhancement; callers can continue without links.
+    return { data: [] };
   }
 };
