@@ -13,6 +13,12 @@ const HEADERS = {
   'User-Agent': `Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36 Chrome/91.0.4472.164`,
 };
 
+const PROXY_BASE_URL = 'https://p.gregtao.top/';
+
+function proxyUrl(url: string): string {
+  return `${PROXY_BASE_URL}${url}`;
+}
+
 function mergeCookies(oldCookies: string[], setCookieHeaders: string[]): string[] {
   const cookieMap: Record<string, string> = {};
 
@@ -34,17 +40,27 @@ export async function get(
   url: string,
   cookies: string[],
   redirectTimes: number = 4,
+  allowProxyRetry: boolean = true,
 ): Promise<ApiResponse> {
   const cookieHeader = cookies.join('; ');
 
-  const res: AxiosResponse = await axios.get(url, {
-    maxRedirects: 0,
-    validateStatus: (status) => status < 400 || status === 302,
-    headers: {
-      ...HEADERS,
-      Cookie: cookieHeader,
-    },
-  });
+  let res: AxiosResponse;
+  try {
+    res = await axios.get(url, {
+      maxRedirects: 0,
+      validateStatus: (status) => status < 400 || status === 302,
+      headers: {
+        ...HEADERS,
+        Cookie: cookieHeader,
+      },
+    });
+  } catch (error) {
+    if (allowProxyRetry) {
+      console.warn(`[GET RETRY VIA PROXY] ${url}`);
+      return await get(proxyUrl(url), cookies, redirectTimes, false);
+    }
+    throw error;
+  }
 
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
@@ -71,22 +87,32 @@ export async function postForm(
   data: any,
   cookies: string[],
   redirectTimes: number = 4,
+  allowProxyRetry: boolean = true,
 ): Promise<ApiResponse> {
   const cookieHeader = cookies.join('; ');
 
-  const res: AxiosResponse = await axios.post(
-    url,
-    new URLSearchParams(data as Record<string, string>).toString(),
-    {
-      maxRedirects: 0,
-      validateStatus: (status) => status < 400 || status === 302,
-      headers: {
-        ...HEADERS,
-        Cookie: cookieHeader,
-        'Content-Type': 'application/x-www-form-urlencoded',
+  let res: AxiosResponse;
+  try {
+    res = await axios.post(
+      url,
+      new URLSearchParams(data as Record<string, string>).toString(),
+      {
+        maxRedirects: 0,
+        validateStatus: (status) => status < 400 || status === 302,
+        headers: {
+          ...HEADERS,
+          Cookie: cookieHeader,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    if (allowProxyRetry) {
+      console.warn(`[POST FORM RETRY VIA PROXY] ${url}`);
+      return await postForm(proxyUrl(url), data, cookies, redirectTimes, false);
+    }
+    throw error;
+  }
 
   const setCookieHeader = res.headers['set-cookie'] || [];
   const updatedCookies = mergeCookies(cookies, setCookieHeader);
